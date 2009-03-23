@@ -4,11 +4,28 @@ GWO
 Rails plugin for Google Website Optimizer which easily allows AB testing.
 http://www.google.com/websiteoptimizer
 
-This plugin also allows dynamic content, which GWO doesn't natively support.
+This plugin allows dynamic content to be tested with GWO by rendering all
+variations server-side and using an advanced technique to determine which
+variation to show at browser parse time.
+
+This elegant JavaScript hack was developed by Eric Vasilik (http://gwotricks.com/)
+and has several nice features and advantages over other methods:
+
+1. Avoids any client-side flickering (e.g. Like you might see using JavaScript or
+   CSS to show/hide the variations).
+   
+2. The browser won't parse or render the variations that weren't selected 
+   to be shown by GWO.  You can use something like FireBug to verify the 
+   variation you are seeing is the only one shows up in the DOM.
+
+3. Degrades gracefully if JavaScript is disabled or GWO errors out.  The control
+   variation will be shown and the other variations are commented out.
+
 
 The 'Usage' may look long - but it's fairly straightforward and shouldn't take 5 mins.
 
-Alex MacCaw - alex@madebymany.co.uk
+Tim Underwood - timunderwood@gmail.com (integrated Eric Vasilik's technique, created gwo_for helper and the Experiment class)
+Alex MacCaw - alex@madebymany.co.uk (original plugin)
 
 Usage
 =====
@@ -27,38 +44,72 @@ Signup for GWO and:
        _uacct = 'UA-6882082-1';
        urchinTracker("/1662461989/test");
      So, in this example the uacct is 'UA-6882082-1' and the test id is 1662461989.
-6.  Add the gwo_start tag after your opening <body> tag, passing your uacct.
+6.  Add the gwo_start tag after your opening <head> tag, passing your uacct.
 7.  Create your gwo_sections, as in the example.
-8.  Add the helper method 'gwo' before the closing </body> tag, passing the default section, uacct and test id as arguments.
+8.  Add the helper method gwo_end() before the closing </body> tag, passing the default section, uacct and test id as arguments.
 9.  Deploy and validate the scripts in GWO
 10. Enter sections for each of the named gwo_section helper tags, the content of the section should look like this:
     GWO("section_name")
-11. Add a gwo_conversion helper tag on your conversion page passing in your uacct and test id.
+11. Add a gwo_conversion helper tag on your conversion page passing in your test id and uacct.
 12. Deploy and complete GWO wizard
 13. Start recording stats & profit!
 
 
-Example
-=======
+Example 1 (using the helpers directly)
+======================================
+<html>
+<head>
+    <%= gwo_start('1662461989') %>
+</head>
+<body>
+<% gwo_section_control("test_section") do %>
+  This is the control section.
+<% end %>
 
-  <% gwo_section(:main) do %>
-    Some default dynamic content <%= Time.now.to_i %>
-  <% end %>
+<% gwo_section_variation("test_section", 1) do %>
+  This is variation 1
+<% end %>
 
-  <% gwo_section(:main2) do %>
-    Some different dynamic content <%= Time.now.to_i %>
-  <% end %>
+<% gwo_section_variation("test_section", 2) do %>
+  This is variation 2.
+<% end %>
 
-  <% gwo_section(:main3) do %>
-    Some really good dynamic content <%= Time.now.to_i %>
-  <% end %>
+<%= gwo_end('1662461989', 'UA-6882082-1') %>
+</body>
+</html>
 
-  <%= gwo(:main, 'UA-23902382-1', 1909920434) %>
+
+Example 2 (using the gwo_for helper to stay DRY)
+================================================
+<% @gwo = gwo_for(:experiment_id => '3902361761', :ga_acct => 'UA-7945208-1') %>
+<html>
+<head>
+    <%= @gwo.start() %>
+</head>
+<body>
+<% gwo.section('test_section') do |section| %>
+    <% section.control() do %>
+      This is the control section.
+    <% end %>
+
+    <% section.variation(1) do %>
+      This is variation 1
+    <% end %>
+
+    <% section.variation(2) do %>
+      This is variation 2.
+    <% end %>
+<% end %>
+
+<%= @gwo.end() %>
+</body>
+</html>
+
 
 Conversion page
 ===============
 
-  <%= gwo_conversion('UA-23902382-1', 1909920434) %>
+  <%= gwo_conversion(1909920434, 'UA-23902382-1') %>
 
 
 Copyright (c) 2009 Made by Many, released under the MIT license
