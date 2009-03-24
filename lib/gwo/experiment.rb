@@ -41,13 +41,13 @@ module GWO
     end
     
     def start()
-      return if @start_called # Start only needs to be called once
+      return '' if @start_called # Start only needs to be called once
       @start_called = true
       @erb_context.gwo_start(@experiment_id)
     end
     
     def end()
-      return if @end_called
+      return '' if @end_called
       @end_called = true
       @erb_context.gwo_end(@experiment_id, @ga_acct)
     end
