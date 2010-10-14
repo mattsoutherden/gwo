@@ -5,7 +5,7 @@ module GWO
       GWO::Experiment.new(options, &block)
     end
     
-    def gwo_start(experiment_id)
+    def gwo_start(experiment_id, options = { :type => 'multivariate'})
       %{<script type="text/javascript">
 function utmx_section(){}function utmx(){}
 (function(){var k='#{experiment_id}',d=document,l=d.location,c=d.cookie;function f(n){
@@ -17,7 +17,9 @@ d.write('<sc'+'ript src="'+
 +new Date().valueOf()+(h?'&utmxhash='+escape(h.substr(1)):'')+
 '" type="text/javascript" charset="utf-8"></sc'+'ript>')})();
 </script>
-      }
+      }.tap do |js|
+        js << %{<script>utmx("url",'A/B');</script>} if options[:type] == 'ab'
+      end
     end
     
     def gwo_end(experiment_id, ga_acct)
