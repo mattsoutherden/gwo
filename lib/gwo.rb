@@ -16,8 +16,7 @@ d.write('<sc'+'ript src="'+
 +'/siteopt.js?v=1&utmxkey='+k+'&utmx='+(x?x:'')+'&utmxx='+(xx?xx:'')+'&utmxtime='
 +new Date().valueOf()+(h?'&utmxhash='+escape(h.substr(1)):'')+
 '" type="text/javascript" charset="utf-8"></sc'+'ript>')})();
-</script>
-      }.tap do |js|
+</script>}.tap do |js|
         js << %{<script>utmx("url",'A/B');</script>} if options[:type] == 'ab'
       end
     end
